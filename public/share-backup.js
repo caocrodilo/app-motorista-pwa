@@ -4,6 +4,7 @@
   const SETTINGS_STORE = "settingsVersions";
   const RECORDS_STORE = "dailyRecords";
   const USER_STORE = "userProfile";
+  let allowOriginalExport = false;
 
   const requestToPromise = (request) =>
     new Promise((resolve, reject) => {
@@ -60,13 +61,17 @@
       type: "application/json",
     });
 
-    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-      await navigator.share({
-        title: "Backup App Motorista",
-        text: "Cópia de segurança da App Motorista",
-        files: [file],
-      });
-      return;
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+        await navigator.share({
+          title: "Backup App Motorista",
+          text: "Cópia de segurança da App Motorista",
+          files: [file],
+        });
+        return;
+      }
+    } catch (error) {
+      if (error && error.name === "AbortError") return;
     }
 
     downloadFile(file);
@@ -80,12 +85,17 @@
   document.addEventListener(
     "click",
     (event) => {
+      if (allowOriginalExport) return;
       if (!isExportButton(event.target)) return;
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
       shareBackup().catch(() => {
-        alert("Não foi possível criar a cópia de segurança.");
+        const originalButton = event.target instanceof Element ? event.target.closest("button") : null;
+        if (!originalButton) return;
+        allowOriginalExport = true;
+        originalButton.click();
+        allowOriginalExport = false;
       });
     },
     true,
