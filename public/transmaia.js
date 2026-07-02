@@ -213,11 +213,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mapa de Ajudas de Custo ${escapeHtml(monthLabel(month))} ${year}</title>
   <style>
-    @page { size: A4 landscape; margin: 14mm 13mm 18mm; }
+    @page { size: 297mm 210mm; margin: 10mm; }
     * { box-sizing: border-box; }
-    body { color: #111; font-family: Arial, sans-serif; font-size: 8px; margin: 0; }
+    html, body { margin: 0; padding: 0; }
+    body { color: #111; font-family: Arial, sans-serif; font-size: 8px; background: white; }
     .actions { margin: 0 0 12px; }
     .actions button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 6px; background: #25634f; color: white; font-weight: 700; }
+    .page { width: 277mm; min-height: 190mm; margin: 0 auto; }
     h1 { margin: 0 0 8px; text-align: center; font-size: 16px; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
     th, td { border: 1.3px solid #111; padding: 2px 3px; vertical-align: middle; line-height: 1.05; }
@@ -237,12 +239,13 @@
     col.risk { width: 4.1%; }
     col.hours { width: 5.4%; }
     col.invoice { width: 7%; }
-    @media screen { body { max-width: 1120px; margin: 24px auto; padding: 0 12px; } }
-    @media print { .actions { display: none; } }
+    @media screen { body { min-width: 1120px; padding: 24px 12px; } .page { box-shadow: 0 0 0 1px #ddd; padding: 10mm; } }
+    @media print { .actions { display: none; } .page { width: 277mm; min-height: 190mm; margin: 0; padding: 0; } }
   </style>
 </head>
 <body>
   <div class="actions"><button onclick="window.print()">Guardar / imprimir PDF</button></div>
+  <main class="page">
   <h1>Mapa de Ajudas de Custo</h1>
   <table>
     <colgroup><col class="day" /><col class="local" /><col class="car" /><col class="km" /><col class="km" /><col class="value" /><col class="risk" /><col class="hours" /><col class="invoice" /></colgroup>
@@ -260,6 +263,7 @@
     <div class="field"><span>Mes:</span>${escapeHtml(monthLabel(month))} ${year}</div>
     <div class="field"><span>Conferido por:</span></div>
   </footer>
+  </main>
   <script>setTimeout(function(){ window.print(); }, 250);</script>
 </body>
 </html>`;
