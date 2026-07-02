@@ -4,7 +4,6 @@
   const SETTINGS_STORE = "settingsVersions";
   const RECORDS_STORE = "dailyRecords";
   const USER_STORE = "userProfile";
-  let allowOriginalExport = false;
 
   const requestToPromise = (request) =>
     new Promise((resolve, reject) => {
@@ -77,27 +76,32 @@
     downloadFile(file);
   };
 
-  const isExportButton = (target) => {
-    const button = target instanceof Element ? target.closest("button") : null;
-    return button && (button.textContent || "").trim() === "Exportar JSON";
+  const createShareButton = () => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = "Partilhar backup";
+    button.dataset.shareBackup = "true";
+    button.addEventListener("click", () => {
+      shareBackup().catch(() => {
+        alert("Não foi possível partilhar o backup. Usa Exportar JSON para guardar o ficheiro.");
+      });
+    });
+    return button;
   };
 
-  document.addEventListener(
-    "click",
-    (event) => {
-      if (allowOriginalExport) return;
-      if (!isExportButton(event.target)) return;
-      event.preventDefault();
-      event.stopPropagation();
-      event.stopImmediatePropagation();
-      shareBackup().catch(() => {
-        const originalButton = event.target instanceof Element ? event.target.closest("button") : null;
-        if (!originalButton) return;
-        allowOriginalExport = true;
-        originalButton.click();
-        allowOriginalExport = false;
-      });
-    },
-    true,
-  );
+  const injectShareButton = () => {
+    if (document.querySelector("[data-share-backup]")) return;
+    const exportButton = Array.from(document.querySelectorAll("button")).find(
+      (button) => (button.textContent || "").trim() === "Exportar JSON",
+    );
+    if (!exportButton) return;
+    const backupActions = exportButton.closest(".backup-actions");
+    if (!backupActions) return;
+    backupActions.appendChild(createShareButton());
+  };
+
+  const observer = new MutationObserver(injectShareButton);
+  observer.observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener("load", injectShareButton);
+  setInterval(injectShareButton, 1000);
 })();
