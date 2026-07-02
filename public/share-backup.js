@@ -58,11 +58,11 @@
   const shareBackup = async () => {
     const payload = await loadBackupData();
     const file = new File([JSON.stringify(payload, null, 2)], `app-motorista-backup-${todayIso()}.json`, {
-      type: "application/json",
+      type: "text/plain",
     });
 
     try {
-      if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
         await navigator.share({
           title: "Backup App Motorista",
           text: "Cópia de segurança da App Motorista",
