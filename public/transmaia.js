@@ -122,13 +122,13 @@
 
   function transmaiaValueText(dayData) {
     const parts = [
-      ["Km", dayData.valorKm],
-      ["Ref", dayData.refeicoes],
-      ["Extras", dayData.extras],
-      ["FDS", dayData.diaFds],
+      dayData.valorKm,
+      dayData.refeicoes,
+      dayData.extras,
+      dayData.diaFds,
     ]
-      .filter(([, value]) => Number(value) > 0)
-      .map(([label, value]) => `${label} ${eur.format(roundMoney(Number(value)))}`);
+      .filter((value) => Number(value) > 0)
+      .map((value) => eur.format(roundMoney(Number(value))));
 
     if (!parts.length) return "";
     return `${parts.join(" + ")} = ${eur.format(roundMoney(dayData.valor))}`;
@@ -220,15 +220,15 @@
     .actions { margin: 0 0 12px; }
     .actions button { min-height: 40px; padding: 0 16px; border: 0; border-radius: 6px; background: #25634f; color: white; font-weight: 700; }
     .page { width: 277mm; min-height: 190mm; margin: 0 auto; }
-    h1 { margin: 0 0 8px; text-align: center; font-size: 16px; }
+    h1 { margin: 0 0 4mm; text-align: center; font-size: 16px; }
     table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { border: 1.3px solid #111; padding: 2px 3px; vertical-align: middle; line-height: 1.05; }
-    th { height: 24px; text-align: center; font-size: 10px; font-weight: 800; }
-    td { height: 13.6px; overflow: hidden; }
+    th, td { border: 1.3px solid #111; padding: 1mm 1.2mm; vertical-align: middle; line-height: 1.05; }
+    th { height: 8mm; text-align: center; font-size: 10px; font-weight: 800; }
+    td { height: 4.55mm; overflow: hidden; }
     .center { text-align: center; }
     .num { text-align: right; white-space: nowrap; }
     .total-row td { border-top-width: 2px; font-weight: 800; }
-    .footer { display: grid; grid-template-columns: 1.4fr 0.8fr 0.8fr 1.1fr; gap: 18px; margin-top: 12px; font-size: 10px; }
+    .footer { display: grid; grid-template-columns: 1.4fr 0.8fr 0.8fr 1.1fr; gap: 18px; margin-top: 5mm; font-size: 10px; }
     .field { min-height: 22px; border-bottom: 1px solid #111; }
     .field span { display: inline-block; min-width: 96px; font-weight: 700; }
     col.day { width: 4%; }
