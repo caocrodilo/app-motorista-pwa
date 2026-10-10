@@ -11,9 +11,11 @@ import { hashPassword, verifyPassword } from "./auth";
 import { createEmptyRecord, dateParts, HOURS_FDS_OPTIONS, MONTHS, todayIso } from "./defaults";
 import { deleteDailyRecord, loadAppData, replaceAppData, saveDailyRecord, saveSettingsVersion, saveUserProfile } from "./db";
 import { eur, monthLabel, number, shortDate } from "./format";
-import type { AppData, DailyRecord, DayOffType, KmValue, MonthName, ServiceType, SettingsVersion, SettingsValues, UserProfile } from "./types";
+import { OvernightView } from "./OvernightView";
+import { OVERNIGHT_OPTIONS } from "./overnight";
+import type { AppData, DailyRecord, DayOffType, KmValue, MonthName, OvernightType, ServiceType, SettingsVersion, SettingsValues, UserProfile } from "./types";
 
-type View = "dashboard" | "daily" | "monthly" | "folgas" | "settings";
+type View = "dashboard" | "daily" | "monthly" | "folgas" | "overnight" | "settings";
 
 const emptyData: AppData = {
   settingsVersions: [],
@@ -253,6 +255,7 @@ function App() {
       )}
 
       {view === "folgas" && <FolgasView records={data.dailyRecords} balance={dayOffBalance} />}
+      {view === "overnight" && <OvernightView records={data.dailyRecords} year={selectedYear} />}
 
       {view === "settings" && !settingsUnlocked && <SettingsPinGate onUnlock={() => setSettingsUnlocked(true)} />}
       {view === "settings" && settingsUnlocked && (
@@ -277,6 +280,12 @@ function App() {
         </button>
         <button className={view === "folgas" ? "active" : ""} onClick={() => goToView("folgas")}>
           Folgas
+        </button>
+        <button className={view === "overnight" ? "active overnight-nav" : "overnight-nav"} onClick={() => goToView("overnight")} aria-label="Pernoitas" title="Pernoitas" aria-current={view === "overnight" ? "page" : undefined}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M2 4v16M2 17h20v3M10 17V8h8a4 4 0 0 1 4 4v5" />
+            <circle cx="6" cy="12" r="2" />
+          </svg>
         </button>
         <button className={view === "settings" ? "active" : ""} onClick={() => goToView("settings")}>
           Def.
@@ -772,6 +781,18 @@ function DailyForm({
         <ReadOnly label="Refeições" value={eur.format(roundMoney(totals.valorRefeicoes))} />
         <ReadOnly label="Descargas" value={eur.format(roundMoney(totals.valorDescargas))} />
       </section>
+
+      <FormSection title="Pernoita">
+        <label>
+          Tipo de pernoita (opcional)
+          <select value={draft.pernoita ?? ""} onChange={(event) => patch({ pernoita: event.target.value as OvernightType })}>
+            <option value="">Não preenchido</option>
+            {OVERNIGHT_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </label>
+      </FormSection>
 
       <div className="form-actions">
         <button type="button" onClick={onCancel}>
@@ -1428,6 +1449,7 @@ function viewTitle(view: View) {
   if (view === "daily") return "Registo Diário";
   if (view === "monthly") return "Registo Mensal";
   if (view === "folgas") return "Banco de Folgas";
+  if (view === "overnight") return "Pernoitas";
   return "Definições";
 }
 

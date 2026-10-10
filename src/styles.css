@@ -588,8 +588,8 @@ textarea {
   left: 0;
   z-index: 10;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
   width: min(100%, 760px);
   margin: 0 auto;
   padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
@@ -610,6 +610,124 @@ textarea {
 .bottom-nav button.active {
   background: #e5f1eb;
   color: #164635;
+}
+
+.overnight-nav {
+  display: grid;
+  place-items: center;
+}
+
+.overnight-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  font-size: 0.8rem;
+}
+
+.overnight-legend > span,
+.overnight-summary dt {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.overnight-dot {
+  display: inline-block;
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.overnight-casa {
+  background: #288442;
+  color: #fff;
+}
+
+.overnight-fds {
+  background: #c73737;
+  color: #fff;
+}
+
+.overnight-saida-domingo {
+  background: #f1cc36;
+  color: #302a10;
+}
+
+.overnight-month {
+  padding: 12px 0 18px;
+  border-bottom: 1px solid #dde6df;
+}
+
+.overnight-month h2,
+.overnight-summary h2 {
+  margin: 0 0 14px;
+  font-size: 1rem;
+}
+
+.overnight-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px 2px;
+  text-align: center;
+}
+
+.overnight-weekday {
+  padding-bottom: 6px;
+  color: #63746b;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.overnight-day {
+  display: grid;
+  min-height: 46px;
+  justify-items: center;
+  align-content: start;
+  gap: 3px;
+}
+
+.overnight-date {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.overnight-markers {
+  display: flex;
+  gap: 3px;
+}
+
+.overnight-markers .overnight-dot {
+  width: 7px;
+  height: 7px;
+  flex-basis: 7px;
+}
+
+.overnight-summary dl {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.overnight-summary dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.overnight-summary dt {
+  font-size: 0.88rem;
+}
+
+.overnight-summary dd {
+  margin: 0;
+  font-weight: 800;
 }
 
 .loading {

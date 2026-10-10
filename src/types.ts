@@ -14,6 +14,7 @@ export type MonthName =
 
 export type ServiceType = "" | "D" | "C" | "TR";
 export type DayOffType = "" | "Ganha" | "Gasta" | "Ganha 1/2" | "Gasta 1/2";
+export type OvernightType = "" | "casa" | "saida-domingo" | "fds";
 export type KmValue = number | null;
 
 export type SettingsValues = {
@@ -100,6 +101,7 @@ export type DailyRecord = {
   diaFolga: DayOffType;
   observacoes: string;
   numeroCarro?: string;
+  pernoita?: OvernightType;
   settingsVersionId: string;
   createdAt: string;
   updatedAt: string;
