@@ -759,6 +759,10 @@ function DailyForm({
           Observações
           <textarea value={draft.observacoes} onChange={(event) => patch({ observacoes: event.target.value })} rows={3} />
         </label>
+        <label>
+          N.º Carro (opcional)
+          <input value={draft.numeroCarro ?? ""} onChange={(event) => patch({ numeroCarro: event.target.value })} />
+        </label>
       </FormSection>
 
       <section className="calc-box">
