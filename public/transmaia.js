@@ -173,6 +173,7 @@
           const valor = valorKm + totals.valorRefeicoes + extras + totals.valorDiaFds;
 
           acc.locations.push(transmaiaLocation(record));
+          acc.carNumbers.push(String(record.numeroCarro ?? "").trim());
           acc.kmInt += totals.totalKmInternacional;
           acc.kmNac += totals.totalKmNacional;
           acc.valorKm += valorKm;
@@ -184,7 +185,7 @@
           acc.horasFds += Number(record.horasFds || 0);
           return acc;
         },
-        { locations: [], kmInt: 0, kmNac: 0, valorKm: 0, refeicoes: 0, extras: 0, diaFds: 0, valor: 0, subRisco: 0, horasFds: 0 },
+        { locations: [], carNumbers: [], kmInt: 0, kmNac: 0, valorKm: 0, refeicoes: 0, extras: 0, diaFds: 0, valor: 0, subRisco: 0, horasFds: 0 },
       );
 
       totalKmInt += dayData.kmInt;
@@ -196,7 +197,7 @@
       return `<tr>
         <td class="center">${day}</td>
         <td>${escapeHtml(dayData.locations.filter(Boolean).join(" | "))}</td>
-        <td></td>
+        <td class="center">${escapeHtml([...new Set(dayData.carNumbers.filter(Boolean))].join(" / "))}</td>
         <td class="num">${dayData.kmInt ? escapeHtml(number.format(dayData.kmInt)) : ""}</td>
         <td class="num">${dayData.kmNac ? escapeHtml(number.format(dayData.kmNac)) : ""}</td>
         <td>${escapeHtml(transmaiaValueText(dayData))}</td>
