@@ -99,6 +99,7 @@ export type DailyRecord = {
   local5: string;
   diaFolga: DayOffType;
   observacoes: string;
+  numeroCarro?: string;
   settingsVersionId: string;
   createdAt: string;
   updatedAt: string;
