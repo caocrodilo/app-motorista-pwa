@@ -46,7 +46,7 @@ export function OvernightView({ records, year }: { records: DailyRecord[]; year:
         <dl>
           <div><dt><i className="overnight-dot overnight-casa" aria-hidden="true" />Pernoita em casa</dt><dd data-overnight-total="casa">{summary.casa}</dd></div>
           <div><dt><i className="overnight-dot overnight-saida-domingo" aria-hidden="true" />Saída Domingo</dt><dd data-overnight-total="saida-domingo">{summary.saidaDomingo}</dd></div>
-          <div><dt><i className="overnight-dot overnight-fds" aria-hidden="true" />Pernoita FDS</dt><dd data-overnight-total="fds">{summary.fds}</dd></div>
+          <div><dt><i className="overnight-dot overnight-fds" aria-hidden="true" />FDS fora</dt><dd data-overnight-total="fds">{summary.fds}</dd></div>
         </dl>
       </section>
     </section>
