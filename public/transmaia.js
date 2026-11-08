@@ -64,8 +64,8 @@
   function resolveSettingsForDate(versions, dateIso) {
     const eligible = versions
       .filter((version) => version.effectiveFrom <= dateIso)
-      .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom));
-    return eligible[0] || versions.slice().sort((a, b) => a.effectiveFrom.localeCompare(b.effectiveFrom))[0];
+      .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom) || b.updatedAt.localeCompare(a.updatedAt) || b.id.localeCompare(a.id));
+    return eligible[0] || versions.slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.effectiveFrom.localeCompare(b.effectiveFrom) || a.updatedAt.localeCompare(b.updatedAt) || a.id.localeCompare(b.id))[0];
   }
 
   function kmRange(start, end) {

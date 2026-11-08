@@ -4,14 +4,16 @@ import {
   calculateDayOffBalance,
   calculateMonthlySummary,
   calculateYearSummaries,
+  calculateWeekendHoursBreakdown,
   resolveSettingsForDate,
   roundMoney,
 } from "./calculations";
 import { hashPassword, verifyPassword } from "./auth";
 import { createEmptyRecord, dateParts, HOURS_FDS_OPTIONS, MONTHS, todayIso } from "./defaults";
-import { deleteDailyRecord, loadAppData, replaceAppData, saveDailyRecord, saveSettingsVersion, saveUserProfile } from "./db";
+import { deleteDailyRecord, loadAppData, replaceAppData, saveDailyRecord, saveSettingsVersionAndRecalculate, saveUserProfile } from "./db";
 import { eur, monthLabel, number, shortDate } from "./format";
 import { OvernightView } from "./OvernightView";
+import { SettingsDateDialog } from "./SettingsDateDialog";
 import { OVERNIGHT_OPTIONS } from "./overnight";
 import type { AppData, DailyRecord, DayOffType, KmValue, MonthName, OvernightType, ServiceType, SettingsVersion, SettingsValues, UserProfile } from "./types";
 
@@ -88,7 +90,7 @@ function App() {
 
   const startNewRecord = () => {
     if (!activeSettings) return;
-    const record = createEmptyRecord(activeSettings.id);
+    const record = createEmptyRecord(resolveSettingsForDate(data.settingsVersions, todayIso()).id);
     setEditingRecord(record);
     goToView("daily");
   };
@@ -107,7 +109,7 @@ function App() {
   };
 
   const createSettingsVersion = async (draft: SettingsVersion) => {
-    await saveSettingsVersion({ ...draft, updatedAt: new Date().toISOString() });
+    await saveSettingsVersionAndRecalculate({ ...draft, updatedAt: new Date().toISOString() });
     await refresh();
   };
 
@@ -262,6 +264,7 @@ function App() {
         <SettingsView
           activeSettings={activeSettings}
           versions={data.settingsVersions}
+          records={data.dailyRecords}
           onSave={createSettingsVersion}
           onExportBackup={exportBackup}
           onImportBackup={importBackup}
@@ -896,6 +899,13 @@ function openMonthlyReportWindow(
   printWindow.document.close();
 }
 
+function weekendHoursAdditions(records: DailyRecord[], versions: SettingsVersion[]) {
+  const lines = calculateWeekendHoursBreakdown(records, versions);
+  return lines.length ? lines.map(line => [
+    `Horas FDS (${number.format(line.hours)} h x ${eur.format(line.rate)})`, line.value,
+  ] as const) : [["Horas FDS (0 h)", 0] as const];
+}
+
 function buildMonthlyReportHtml(
   summary: ReturnType<typeof calculateMonthlySummary>,
   records: DailyRecord[],
@@ -910,7 +920,7 @@ function buildMonthlyReportHtml(
     ["TIR", salarySettings.tir],
     ["Cláusula 61", salarySettings.clausula61],
     ["Noturno", salarySettings.noturno],
-    [`Horas FDS (${number.format(summary.horasFds)} h x ${eur.format(salarySettings.horaFds)})`, summary.valorHorasFds],
+    ...weekendHoursAdditions(records, settingsVersions),
   ] as const;
   const rows = records.length
     ? records
@@ -1032,7 +1042,7 @@ function PrintMonthlyReport({
     ["TIR", salarySettings.tir],
     ["Cláusula 61", salarySettings.clausula61],
     ["Noturno", salarySettings.noturno],
-    [`Horas FDS (${number.format(summary.horasFds)} h x ${eur.format(salarySettings.horaFds)})`, summary.valorHorasFds],
+    ...weekendHoursAdditions(records, settingsVersions),
   ] as const;
 
   return (
@@ -1181,13 +1191,15 @@ function FolgasView({ records, balance }: { records: DailyRecord[]; balance: Ret
 function SettingsView({
   activeSettings,
   versions,
+  records,
   onSave,
   onExportBackup,
   onImportBackup,
 }: {
   activeSettings: SettingsVersion;
   versions: SettingsVersion[];
-  onSave: (settings: SettingsVersion) => void;
+  records: DailyRecord[];
+  onSave: (settings: SettingsVersion) => Promise<void>;
   onExportBackup: () => void;
   onImportBackup: (file: File) => Promise<void>;
 }) {
@@ -1200,21 +1212,24 @@ function SettingsView({
     updatedAt: new Date().toISOString(),
   });
   const [backupMessage, setBackupMessage] = useState("");
+  const [dateDialogOpen, setDateDialogOpen] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState("");
 
   const patch = (key: keyof SettingsVersion, value: string | number | boolean) => {
     setDraft((current) => ({ ...current, [key]: value }));
   };
 
-  return (
+  return (<>
     <form
       className="screen form-stack"
       onSubmit={(event) => {
         event.preventDefault();
-        onSave(draft);
+        setSettingsMessage("");
+        setDateDialogOpen(true);
       }}
     >
       <section className="notice">
-        Alterar valores cria uma nova versão. Registos antigos continuam com os valores que estavam em vigor na data deles.
+        Ao guardar, escolhe a data de entrada em vigor. Os registos desde essa data serão recalculados; os anteriores mantêm os valores antigos.
       </section>
       <FormSection title="Backup">
         <div className="backup-actions">
@@ -1242,10 +1257,6 @@ function SettingsView({
         {backupMessage && <p className="muted">{backupMessage}</p>}
       </FormSection>
       <FormSection title="Nova versão">
-        <label>
-          Entrada em vigor
-          <input type="date" value={draft.effectiveFrom} onChange={(event) => patch("effectiveFrom", event.target.value)} />
-        </label>
         <label>
           Nome
           <input value={draft.label} onChange={(event) => patch("label", event.target.value)} />
@@ -1287,7 +1298,15 @@ function SettingsView({
           Guardar nova versão
         </button>
       </div>
+      {settingsMessage && <p className="muted" role="status">{settingsMessage}</p>}
     </form>
+    {dateDialogOpen && <SettingsDateDialog records={records} versions={versions} onClose={() => setDateDialogOpen(false)} onConfirm={async date => {
+      const now = new Date().toISOString();
+      await onSave({ ...draft, id: crypto.randomUUID(), effectiveFrom: date, createdAt: now, updatedAt: now });
+      setDateDialogOpen(false);
+      setSettingsMessage(`Valores aplicados desde ${shortDate(date)}.`);
+    }} />}
+    </>
   );
 }
 

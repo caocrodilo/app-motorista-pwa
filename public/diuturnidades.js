@@ -31,7 +31,7 @@
     const transaction = db.transaction(SETTINGS_STORE, "readonly");
     const versions = await requestToPromise(transaction.objectStore(SETTINGS_STORE).getAll());
     db.close();
-    return versions.sort((a, b) => String(a.effectiveFrom).localeCompare(String(b.effectiveFrom))).at(-1) || null;
+    return versions.sort((a, b) => String(a.effectiveFrom).localeCompare(String(b.effectiveFrom)) || String(a.updatedAt).localeCompare(String(b.updatedAt)) || String(a.id).localeCompare(String(b.id))).at(-1) || null;
   };
 
   const getNominalValue = (settings) => {

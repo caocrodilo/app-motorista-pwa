@@ -1,4 +1,6 @@
 import { createInitialSettings } from "./defaults";
+import { compareSettingsVersions } from "./calculations";
+import { planSettingsChange } from "./settingsChanges";
 import type { AppData, DailyRecord, SettingsVersion, UserProfile } from "./types";
 
 const DB_NAME = "app-motorista-db";
@@ -60,7 +62,7 @@ export const loadAppData = async (): Promise<AppData> => {
 
   if (settingsVersions.length > 0) {
     return {
-      settingsVersions: settingsVersions.sort((a, b) => a.effectiveFrom.localeCompare(b.effectiveFrom)),
+      settingsVersions: settingsVersions.sort(compareSettingsVersions),
       dailyRecords: dailyRecords.sort((a, b) => b.data.localeCompare(a.data)),
       userProfile: userProfiles[0] ?? null,
     };
@@ -82,6 +84,30 @@ export const saveSettingsVersion = async (version: SettingsVersion) => {
   transaction.objectStore(SETTINGS_STORE).put(version);
   await transactionDone(transaction);
   db.close();
+};
+
+export const saveSettingsVersionAndRecalculate = async (version: SettingsVersion) => {
+  const db = await openDb();
+  const transaction = db.transaction([SETTINGS_STORE, RECORDS_STORE], "readwrite");
+  const done = transactionDone(transaction);
+  try {
+    const settingsStore = transaction.objectStore(SETTINGS_STORE);
+    const recordsStore = transaction.objectStore(RECORDS_STORE);
+    const [versions, records] = await Promise.all([
+      requestToPromise<SettingsVersion[]>(settingsStore.getAll()),
+      requestToPromise<DailyRecord[]>(recordsStore.getAll()),
+    ]);
+    const change = planSettingsChange(records, versions, version);
+    settingsStore.put(change.version);
+    for (const record of change.records) recordsStore.put(record);
+    await done;
+  } catch (error) {
+    try { transaction.abort(); } catch { /* The transaction may have already aborted. */ }
+    await done.catch(() => undefined);
+    throw error;
+  } finally {
+    db.close();
+  }
 };
 
 export const saveDailyRecord = async (record: DailyRecord) => {

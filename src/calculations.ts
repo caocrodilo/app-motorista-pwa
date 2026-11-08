@@ -9,12 +9,15 @@ const kmRange = (start: number | null, end: number | null) => {
   return end - start;
 };
 
+export const compareSettingsVersions = (a: SettingsVersion, b: SettingsVersion) =>
+  a.effectiveFrom.localeCompare(b.effectiveFrom) || a.updatedAt.localeCompare(b.updatedAt) || a.id.localeCompare(b.id);
+
 export const resolveSettingsForDate = (versions: SettingsVersion[], dateIso: string) => {
   const eligible = versions
     .filter((version) => version.effectiveFrom <= dateIso)
-    .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom));
+    .sort((a, b) => compareSettingsVersions(b, a));
 
-  return eligible[0] ?? versions.slice().sort((a, b) => a.effectiveFrom.localeCompare(b.effectiveFrom))[0];
+  return eligible[0] ?? versions.slice().sort((a, b) => a.createdAt.localeCompare(b.createdAt) || compareSettingsVersions(a, b))[0];
 };
 
 export const calculateDailyTotals = (record: DailyRecord, settings: SettingsVersion): DailyTotals => {
@@ -62,6 +65,16 @@ export const calculateDailyTotals = (record: DailyRecord, settings: SettingsVers
   };
 };
 
+export function calculateWeekendHoursBreakdown(records: DailyRecord[], versions: SettingsVersion[]) {
+  const hoursByRate = new Map<number, number>();
+  for (const record of records) {
+    if (!record.horasFds) continue;
+    const settings = versions.find(version => version.id === record.settingsVersionId) ?? resolveSettingsForDate(versions, record.data);
+    hoursByRate.set(settings.horaFds, (hoursByRate.get(settings.horaFds) ?? 0) + record.horasFds);
+  }
+  return Array.from(hoursByRate, ([rate, hours]) => ({ rate, hours, value: rate * hours }));
+}
+
 export const calculateMonthlySummary = (
   records: DailyRecord[],
   settingsVersions: SettingsVersion[],
@@ -73,7 +86,7 @@ export const calculateMonthlySummary = (
   const salarySettings = resolveSettingsForDate(settingsVersions, monthEnd);
 
   const horasFds = monthRecords.reduce((sum, record) => sum + record.horasFds, 0);
-  const valorHorasFds = horasFds * salarySettings.horaFds;
+  const valorHorasFds = calculateWeekendHoursBreakdown(monthRecords, settingsVersions).reduce((sum, line) => sum + line.value, 0);
   const salarioBruto =
     salarySettings.base +
     salarySettings.diuturnidades +

@@ -738,6 +738,42 @@ textarea {
   font-weight: 750;
 }
 
+.settings-date-dialog {
+  width: min(440px, calc(100% - 28px));
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+  border: 1px solid #cbd8d0;
+  border-radius: 8px;
+  padding: 20px;
+  background: #fff;
+  color: #17251f;
+}
+
+.settings-date-dialog::backdrop {
+  background: rgba(23, 37, 31, 0.5);
+}
+
+.settings-date-dialog form {
+  display: grid;
+  gap: 16px;
+}
+
+.settings-date-dialog h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.settings-date-impact {
+  display: grid;
+  gap: 8px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.settings-date-impact p {
+  margin: 0;
+}
+
 .print-only {
   display: none;
 }
